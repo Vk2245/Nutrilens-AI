@@ -39,6 +39,7 @@ class GeminiService:
         """Initialize Gemini models and response cache."""
         self._api_keys = settings.gemini_api_keys
         self._current_key_index = 0
+        self._retry_count = 0
         self._configure_api()
         self._model = genai.GenerativeModel("gemini-2.0-flash")
         self._cache: Dict[str, NutritionAnalysis] = {}
@@ -51,12 +52,18 @@ class GeminiService:
             genai.configure(api_key=self._api_keys[self._current_key_index])
 
     def _rotate_key(self) -> bool:
-        """Rotate to next API key on quota exhaustion. Returns True if rotated."""
+        """Rotate to next API key on quota exhaustion. Returns True if rotated successfully."""
+        self._retry_count += 1
+        if self._retry_count > len(self._api_keys):
+            logger.error("All API keys exhausted — falling back to demo mode")
+            self._retry_count = 0
+            return False
         if len(self._api_keys) > 1:
             self._current_key_index = (self._current_key_index + 1) % len(self._api_keys)
             self._configure_api()
-            logger.warning("Rotated to API key index %d", self._current_key_index)
+            logger.warning("Rotated to API key index %d (attempt %d)", self._current_key_index, self._retry_count)
             return True
+        self._retry_count = 0
         return False
 
     async def analyze_food_image(
@@ -129,6 +136,7 @@ Confidence: 0.0-1.0 based on image clarity and recognition certainty."""
             self._cache[cache_key] = result
             self._cache_timestamps[cache_key] = time.time()
             logger.info("Analyzed food: %s (score: %d)", result.dish_name, result.health_score)
+            self._retry_count = 0
             return result
 
         except Exception as e:

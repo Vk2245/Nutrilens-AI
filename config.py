@@ -35,8 +35,8 @@ class Settings:
 
         self.firebase_api_key: str = os.getenv("FIREBASE_API_KEY", "")
         self.firebase_auth_domain: str = os.getenv("FIREBASE_AUTH_DOMAIN", "")
-        self.firebase_project_id: str = os.getenv("FIREBASE_PROJECT_ID", "nutrilensai")
-        self.firebase_database_url: str = os.getenv("FIREBASE_DATABASE_URL", "https://nutrilensai-default-rtdb.firebaseio.com")
+        self.firebase_project_id: str = os.getenv("FIREBASE_PROJECT_ID", "nutrilensai6104")
+        self.firebase_database_url: str = os.getenv("FIREBASE_DATABASE_URL", "https://nutrilensai6104-default-rtdb.firebaseio.com")
         self.firebase_storage_bucket: str = os.getenv("FIREBASE_STORAGE_BUCKET", "")
         self.firebase_messaging_sender_id: str = os.getenv("FIREBASE_MESSAGING_SENDER_ID", "")
         self.firebase_app_id: str = os.getenv("FIREBASE_APP_ID", "")
