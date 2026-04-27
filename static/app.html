@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="description" content="NutriLens AI — Gemini-powered contextual nutrition intelligence. Snap your food, get instant analysis, personalized coaching, and behavioral insights.">
+<meta name="theme-color" content="#0F1923">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>NutriLens AI — Your food, understood.</title>
+<link rel="manifest" href="/static/manifest.json">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+<!-- Skip to content — WCAG 2.4.1 -->
+<a href="#main-content" class="skip-link">Skip to main content</a>
+
+<!-- Loading Overlay -->
+<div id="loadingOverlay" class="loading-overlay hidden" role="alert" aria-live="assertive">
+  <div class="spinner"></div>
+  <div class="loading-text" id="loadingText">Analyzing with Gemini AI...</div>
+</div>
+
+<!-- Header -->
+<header class="app-header" role="banner">
+  <div class="app-logo">
+    <svg viewBox="0 0 32 32" fill="none" role="img" aria-label="NutriLens logo"><circle cx="16" cy="16" r="15" stroke="#00BFA5" stroke-width="2"/><path d="M10 20c0-6 3-12 6-12s6 6 6 12" stroke="#00BFA5" stroke-width="2" stroke-linecap="round"/><circle cx="16" cy="14" r="3" fill="#00BFA5" opacity="0.6"/></svg>
+    <h1>Nutri<span>Lens</span> AI</h1>
+  </div>
+  <div class="header-actions">
+    <span id="langToggle" class="suggestion-chip" onclick="toggleLanguage()" title="Switch language" style="padding:4px 12px;font-size:0.75rem;">EN | हिं</span>
+    <button id="btnSignIn" class="btn-signin" onclick="handleSignIn()" aria-label="Sign in with Google">Sign In</button>
+    <img id="userAvatar" class="user-avatar hidden" alt="User profile" src="">
+  </div>
+</header>
+
+<!-- Main Content -->
+<main id="main-content" class="app-main" role="main">
+  <!-- Aria live for screen readers -->
+  <div role="status" aria-live="assertive" aria-atomic="true" class="hidden" id="srAnnounce"></div>
+
+  <!-- Dashboard Tab -->
+  <div id="tabDashboard" class="tab-content active">
+    <h2 class="greeting" id="greetingText">Good afternoon, Priya! 👋</h2>
+    <p class="greeting-sub">Here's your nutrition snapshot for today</p>
+
+    <!-- Nudge banner -->
+    <div class="nudge-banner" id="nudgeBanner" role="complementary" aria-label="Nutrition nudge">
+      <span class="nudge-icon">💡</span>
+      <div class="nudge-text" id="nudgeText"><strong>Protein boost time!</strong> You're 20g short on protein today. Try paneer tikka or a handful of almonds for your evening snack.</div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-row">
+      <div class="stat-box"><div class="stat-value cal" id="statCal">740</div><div class="stat-label">Calories</div></div>
+      <div class="stat-box"><div class="stat-value score" id="statScore">68</div><div class="stat-label">Health Score</div></div>
+      <div class="stat-box"><div class="stat-value streak" id="statStreak">🔥 5</div><div class="stat-label">Day Streak</div></div>
+      <div class="stat-box"><div class="stat-value meals" id="statMeals">2</div><div class="stat-label">Meals Logged</div></div>
+    </div>
+
+    <!-- Donut Chart -->
+    <div class="card card-glow">
+      <div class="card-title">Calorie Progress</div>
+      <div class="donut-wrap">
+        <div class="donut-chart" role="img" aria-label="Calorie progress donut chart">
+          <canvas id="donutCanvas" width="180" height="180"></canvas>
+          <div class="donut-center">
+            <div class="cal-num" id="donutCal">740</div>
+            <div class="cal-label">of <span id="donutGoal">1800</span> kcal</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Macro Bars -->
+    <div class="card">
+      <div class="card-title">Macronutrients</div>
+      <div class="macro-bars">
+        <div class="macro-row"><span class="macro-label">Protein</span><div class="macro-bar-bg"><div class="macro-bar protein" id="barProtein" style="width:60%"></div></div><span class="macro-val" id="valProtein">30g</span></div>
+        <div class="macro-row"><span class="macro-label">Carbs</span><div class="macro-bar-bg"><div class="macro-bar carbs" id="barCarbs" style="width:34%"></div></div><span class="macro-val" id="valCarbs">86g</span></div>
+        <div class="macro-row"><span class="macro-label">Fat</span><div class="macro-bar-bg"><div class="macro-bar fat" id="barFat" style="width:51%"></div></div><span class="macro-val" id="valFat">33g</span></div>
+        <div class="macro-row"><span class="macro-label">Fiber</span><div class="macro-bar-bg"><div class="macro-bar fiber" id="barFiber" style="width:40%"></div></div><span class="macro-val" id="valFiber">10g</span></div>
+      </div>
+    </div>
+
+    <!-- Recent Meals -->
+    <div class="card">
+      <div class="card-title">Today's Meals</div>
+      <div id="mealList">
+        <div class="meal-item"><span class="meal-emoji">🥣</span><div class="meal-info"><div class="meal-name">Masala Oats with Vegetables</div><div class="meal-meta">Breakfast · 220 kcal</div></div><div class="meal-score">82</div></div>
+        <div class="meal-item"><span class="meal-emoji">🍛</span><div class="meal-info"><div class="meal-name">Paneer Butter Masala with Roti</div><div class="meal-meta">Lunch · 520 kcal</div></div><div class="meal-score">55</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Snap Tab -->
+  <div id="tabSnap" class="tab-content">
+    <h2 style="font-size:1.3rem;font-weight:700;margin-bottom:4px;">Snap & Know</h2>
+    <p style="color:var(--text-secondary);font-size:0.85rem;margin-bottom:20px;">Point your camera at any food for instant AI analysis</p>
+
+    <div class="snap-area">
+      <div class="camera-circle" id="cameraCircle" onclick="document.getElementById('fileInput').click()" role="button" aria-label="Tap to take a food photo" tabindex="0">
+        <svg id="cameraIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
+        <img id="previewImg" class="hidden" alt="Food image preview">
+      </div>
+      <input type="file" id="fileInput" accept="image/jpeg,image/png,image/webp" class="hidden" onchange="handleImageSelect(event)" aria-label="Select food photo">
+      <p class="snap-hint">Tap the circle to capture or upload a food photo</p>
+
+      <div class="snap-actions">
+        <button class="btn-snap primary" id="btnAnalyze" onclick="analyzeFood()" disabled aria-label="Analyze food with Gemini AI">🔍 Analyze with Gemini</button>
+        <button class="btn-snap secondary" onclick="document.getElementById('fileInput').click()">📁 Upload</button>
+      </div>
+
+      <div class="text-analyze-area">
+        <p style="color:var(--text-muted);font-size:0.8rem;margin-bottom:8px;text-align:left;">Or describe your food:</p>
+        <textarea class="text-input" id="foodDescription" rows="2" placeholder="e.g., 2 chapati with dal tadka and cucumber salad" aria-label="Describe your food for text analysis"></textarea>
+        <button class="btn-snap primary" style="margin-top:10px;width:100%;" onclick="analyzeText()">📝 Analyze Text</button>
+      </div>
+    </div>
+
+    <!-- Analysis Result (hidden by default) -->
+    <div id="analysisResult" class="hidden" role="region" aria-label="Nutrition analysis result">
+      <div role="status" aria-live="assertive" id="resultAnnounce" class="hidden"></div>
+    </div>
+  </div>
+
+  <!-- Coach Tab -->
+  <div id="tabCoach" class="tab-content">
+    <h2 style="font-size:1.3rem;font-weight:700;margin-bottom:4px;">🧠 AI Coach</h2>
+    <p style="color:var(--text-secondary);font-size:0.85rem;margin-bottom:16px;">Your personal nutrition advisor — text or voice</p>
+
+    <div class="coach-messages" id="coachMessages">
+      <div class="msg bot">Namaste! I'm your NutriLens AI Coach. I can see your meals today and know your health goals. Ask me anything about nutrition — in English or Hindi! 🥗</div>
+    </div>
+
+    <div class="coach-suggestions" id="coachSuggestions">
+      <button class="suggestion-chip" onclick="askCoach(this.textContent)">What should I eat for dinner?</button>
+      <button class="suggestion-chip" onclick="askCoach(this.textContent)">Am I eating enough protein?</button>
+      <button class="suggestion-chip" onclick="askCoach(this.textContent)">Suggest a healthy snack</button>
+    </div>
+
+    <div class="coach-input-area">
+      <input class="coach-input" id="coachInput" placeholder="Ask your nutrition coach..." aria-label="Type a question for your nutrition coach" onkeydown="if(event.key==='Enter')sendCoachMessage()">
+      <button class="btn-mic" id="btnMic" onclick="toggleVoiceInput()" aria-label="Voice input"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/></svg></button>
+      <button class="btn-send" onclick="sendCoachMessage()" aria-label="Send message"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button>
+    </div>
+  </div>
+
+  <!-- Explore Tab -->
+  <div id="tabExplore" class="tab-content">
+    <h2 style="font-size:1.3rem;font-weight:700;margin-bottom:4px;">🌍 Explore</h2>
+    <p style="color:var(--text-secondary);font-size:0.85rem;margin-bottom:20px;">Discover healthy options near you</p>
+
+    <div class="explore-section">
+      <div class="section-title">🏪 Nearby Healthy Restaurants</div>
+      <div id="restaurantList"></div>
+    </div>
+
+    <div class="explore-section">
+      <div class="section-title">🎬 Recipe Videos For You</div>
+      <div class="recipe-grid" id="recipeGrid"></div>
+    </div>
+  </div>
+
+  <!-- Profile Tab -->
+  <div id="tabProfile" class="tab-content">
+    <div class="profile-header">
+      <div class="profile-avatar" id="profileAvatar">P</div>
+      <div class="profile-name" id="profileName">Priya Sharma</div>
+      <div class="profile-email" id="profileEmail">priya@nutrilens.demo</div>
+      <div class="streak-badge" style="margin-top:10px;">🔥 5-day streak</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Health Profile</div>
+      <div class="profile-form">
+        <div class="form-row">
+          <div class="form-group"><label class="form-label" for="profAge">Age</label><input class="form-input" id="profAge" type="number" value="28"></div>
+          <div class="form-group"><label class="form-label" for="profWeight">Weight (kg)</label><input class="form-input" id="profWeight" type="number" value="62"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label" for="profHeight">Height (cm)</label><input class="form-input" id="profHeight" type="number" value="163"></div>
+          <div class="form-group"><label class="form-label" for="profCalGoal">Daily Cal Goal</label><input class="form-input" id="profCalGoal" type="number" value="1800"></div>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="profGoal">Dietary Goal</label>
+          <select class="form-select" id="profGoal">
+            <option value="general_wellness" selected>General Wellness</option>
+            <option value="weight_loss">Weight Loss</option>
+            <option value="weight_gain">Weight Gain</option>
+            <option value="muscle_building">Muscle Building</option>
+            <option value="diabetes_management">Diabetes Management</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="profActivity">Activity Level</label>
+          <select class="form-select" id="profActivity">
+            <option value="sedentary">Sedentary</option>
+            <option value="lightly_active">Lightly Active</option>
+            <option value="moderately_active" selected>Moderately Active</option>
+            <option value="very_active">Very Active</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="profAllergies">Allergies (comma-separated)</label>
+          <input class="form-input" id="profAllergies" value="peanuts" placeholder="e.g., peanuts, dairy">
+        </div>
+        <button class="btn-save" onclick="saveProfile()">Save Profile</button>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:12px;">
+      <div class="card-title">App Settings</div>
+      <div class="meal-item" onclick="requestNotificationPermission()" style="cursor:pointer;"><span class="meal-emoji">🔔</span><div class="meal-info"><div class="meal-name">Push Notifications</div><div class="meal-meta">Get proactive meal nudges</div></div></div>
+      <div class="meal-item"><span class="meal-emoji">🌙</span><div class="meal-info"><div class="meal-name">Dark Mode</div><div class="meal-meta">Always on</div></div></div>
+      <div class="meal-item"><span class="meal-emoji">📊</span><div class="meal-info"><div class="meal-name">Export to Sheets</div><div class="meal-meta">Auto-sync meal data</div></div></div>
+    </div>
+  </div>
+</main>
+
+<!-- Bottom Navigation -->
+<nav class="bottom-nav" role="navigation" aria-label="Main navigation">
+  <button class="nav-item active" data-tab="tabDashboard" onclick="switchTab('tabDashboard')" aria-label="Dashboard" aria-current="page">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+    <span>Dashboard</span>
+  </button>
+  <button class="nav-item" data-tab="tabSnap" onclick="switchTab('tabSnap')" aria-label="Snap and Know">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
+    <span>Snap</span>
+  </button>
+  <button class="nav-item" data-tab="tabCoach" onclick="switchTab('tabCoach')" aria-label="AI Coach">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+    <span>Coach</span>
+  </button>
+  <button class="nav-item" data-tab="tabExplore" onclick="switchTab('tabExplore')" aria-label="Explore restaurants and recipes">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="10" r="3"/><path d="M12 21.7C17.3 17 20 13 20 10a8 8 0 10-16 0c0 3 2.7 7 8 11.7z"/></svg>
+    <span>Explore</span>
+  </button>
+  <button class="nav-item" data-tab="tabProfile" onclick="switchTab('tabProfile')" aria-label="Profile settings">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+    <span>Profile</span>
+  </button>
+</nav>
+
+<script src="/static/app.js"></script>
+</body>
+</html>
