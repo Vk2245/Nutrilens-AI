@@ -1,0 +1,18 @@
+{
+  "rules": {
+    "users": {
+      "$uid": {
+        ".read": "$uid === auth.uid",
+        ".write": "$uid === auth.uid",
+        "profile": {
+          ".validate": "newData.hasChildren(['name', 'age', 'weight_kg', 'height_cm'])"
+        },
+        "logs": {
+          "$date": {
+            ".validate": "newData.hasChild('date')"
+          }
+        }
+      }
+    }
+  }
+}
